@@ -10,6 +10,7 @@ var cache = require('gulp-cache');
 var del = require('del');
 var runSequence = require('run-sequence');
 
+var spritesmith = require('gulp.spritesmith');
 gulp.task('sass',function(){
     return gulp.src('app/scss/**/*.scss')
     .pipe(sass())
@@ -29,9 +30,10 @@ gulp.task('browserSync',function(){
 })
 
 gulp.task('watch',function(){
-    gulp.watch('app/scss/**/*.scss',['sass']);
+    gulp.watch('app/scss/**/*.scss',['sass* ']);
     gulp.watch('app/*.html',browserSync.reload);
     gulp.watch('app/js/**/*.js',browserSync.reload);
+    gulp.watch(['app/images/sprites/**.*.png'],['sprite']);
 
 })
 
@@ -42,6 +44,17 @@ gulp.task('useref',function(){
         .pipe(gulpIf('*.css',cssnano()))
         .pipe(gulp.dest('dist'))
 });
+
+gulp.task('sprite',function(){
+    var spriteData = gulp.src('app/images/sprites/*.png')
+        .pipe(spritesmith({
+            imgName:'../images/sprite.png',
+            cssName:'sprite.css'
+        }));
+    spriteData.img.pipe(gulp.dest('app/images'));
+    spriteData.css.pipe(gulp.dest('app/css'));
+
+})
 
 gulp.task('images', function(){
   return gulp.src('app/images/**/*.+(png|jpg|jpeg|gif|svg)')
@@ -64,6 +77,9 @@ gulp.task('clean:dist',function(){
 // gulp.task('cache:clear',function(callback){
 //     return cache.clearAll(callback)
 // })
+
+
+
 gulp.task('default',function(callback){
     runSequence(['sass','browserSync','watch'],
         callback
